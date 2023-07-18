@@ -2,3 +2,5 @@
 .env
 **\__pycache__
 /assets/speech
+/visualize_audio
+/gui
