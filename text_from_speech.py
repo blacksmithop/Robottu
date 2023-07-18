@@ -13,7 +13,7 @@ def SpeakText(message):
     engine = pyttsx3.init()
 
     response = ai_response(message=message)
-
+    print("Response:", response)
     engine.say(response)
     engine.runAndWait()
 

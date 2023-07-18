@@ -1,38 +1,40 @@
 import os
-# Import Azure OpenAI
-from langchain.llms import AzureOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv, find_dotenv
+from langchain.chat_models import AzureChatOpenAI
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
+
 
 
 ENV_FILE = find_dotenv()
 load_dotenv(ENV_FILE) # find_dotenv is called automatically
 
 
-llm = AzureOpenAI(
+llm = AzureChatOpenAI(
     openai_api_key=os.environ["OPENAI_API_KEY"],
     openai_api_base=os.environ["OPENAI_API_BASE"],
-    openai_api_version=os.environ["OPENAI_API_VERSION"],
-    deployment_name=os.environ["COMPLETION_ENGINE"]
+    deployment_name=os.environ["CHAT_ENGINE"]
     ) # type: ignore
 
-llm.temperature = 0.2
+llm.temperature = 0
 
-openai_template = """
-Message: ```{input}```
-You are a conversational partner. Respond to the message in triple backticks
-"""
-
-prompt = PromptTemplate(input_variables=["input"], template=openai_template)
-OpenAiLLM = LLMChain(llm=llm, prompt=prompt, output_key="output")  
+messages = [
+    SystemMessage(
+        content="You are a helpful assistant."
+    ),
+    HumanMessage(
+        content="Hi Jarvis, how are you today?"
+    ),
+    AIMessage(content="My name is Jarvis, how may I assist you today?"),
+]
 
 
 def ai_response(message: str):
-    return OpenAiLLM.run(message)
+    messages.append(HumanMessage(content=message))
+    return llm(messages=messages).content
 
-# if __name__ == "__main__":
-#     print(llm("Tell me a joke"))
+if __name__ == "__main__":
+    # print(llm("Tell me a joke"))
+    ai_response("Who was Donald Trump")
 
 """
 If necessary adjust the model parameters
