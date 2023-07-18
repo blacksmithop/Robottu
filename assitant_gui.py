@@ -4,7 +4,7 @@ import dearpygui.dearpygui as dpg
 import pyaudio
 import numpy as np
 # threading
-import multiprocessing
+import threading
 import speech_recognition as sr
 
 
@@ -52,14 +52,14 @@ def listen():
                     frames_per_buffer=CHUNK, stream_callback=callback)
     session['stream'].start_stream()
 
-    session["recognize"] = multiprocessing.Process(target = recognize_speech)
+    session["recognize"] = threading.Thread(target = recognize_speech)
     session["recognize"].start()
 
 def stop():
     dpg.set_value("listening-status", "Audio Level (not-listening)")
     dpg.set_value("progress-bar", 0)
     session['stream'].close()
-    session["recognize"].terminate()
+
 
 def recognize_speech():
     r = sr.Recognizer()
@@ -107,7 +107,6 @@ with dpg.window(tag="Primary Window"):
 dpg.create_viewport(title='Window', width=800, height=400)
 dpg.set_viewport_small_icon("./assets/images/icon.ico")
 dpg.set_viewport_large_icon("./assets/images/icon.ico")
-
 
 dpg.set_primary_window("Primary Window", True)
 
