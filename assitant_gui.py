@@ -47,60 +47,73 @@ def callback(in_data, frame_count, time_info, status):
     return (in_data, pyaudio.paContinue)
 
 def listen():
-    dpg.set_value("listening-status", "Audio Level (listening)")
+    dpg.set_value("listening-status", "Audio Level (ON)")
     session['stream'] = pAud.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True,
                     frames_per_buffer=CHUNK, stream_callback=callback)
     session['stream'].start_stream()
 
-    session["recognize"] = threading.Thread(target = recognize_speech)
+    session["recognize"] = SpeechRecognition()
     session["recognize"].start()
 
+    
 def stop():
-    dpg.set_value("listening-status", "Audio Level (not-listening)")
+    dpg.set_value("listening-status", "Audio Level (OFF)")
     dpg.set_value("progress-bar", 0)
     session['stream'].close()
 
+    session["recognize"].stop()
 
-def recognize_speech():
-    r = sr.Recognizer()
-    while True:
-        try:
-            with sr.Microphone() as source:
-                    print("Listening")
-                    # wait for a second to let the recognizer
-                    # adjust the energy threshold based on
-                    # the surrounding noise level
-                    r.adjust_for_ambient_noise(source)
 
-                    # listens for the user's input
-                    audio = r.listen(source)
+class SpeechRecognition(threading.Thread):
 
-                    # Using google to recognize audio
-                    spoken_text = r.recognize_google(audio)
-                    spoken_text = spoken_text.lower() # type: ignore
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.event = threading.Event()
+        # the rest of your setup...
 
-                    print("Speech:", spoken_text)
+    def run(self):
+        r = sr.Recognizer()
+        while not self.event.is_set():
+            try:
+                with sr.Microphone() as source:
+                        # wait for a second to let the recognizer
+                        # adjust the energy threshold based on
+                        # the surrounding noise level
+                        r.adjust_for_ambient_noise(source)
 
-                    dpg.set_value("spoken-text", spoken_text)
-        except sr.RequestError as e:
-            pass
-            # print("Could not request results; {0}".format(e))
+                        # listens for the user's input
+                        audio = r.listen(source)
 
-        except sr.UnknownValueError:
-            pass
-            # print("unknown error occurred")
+                        # Using google to recognize audio
+                        spoken_text = r.recognize_google(audio)
+                        spoken_text = spoken_text.lower() # type: ignore
 
+                        print("Speech:", spoken_text)
+
+                        dpg.set_value("spoken-text", spoken_text)
+            except sr.RequestError as e:
+                pass
+                # print("Could not request results; {0}".format(e))
+
+            except sr.UnknownValueError:
+                pass
+                # print("unknown error occurred")
+
+    def stop(self):       # <---- Added ( ease of use )
+        self.event.set()
+
+dpg.set_global_font_scale(scale=1.2)
 
 with dpg.window(tag="Primary Window"):
-    dpg.add_text("Audio Level (not-listening)", tag="listening-status", color=(175, 195, 227))
+    dpg.add_text("Audio Level (OFF)", tag="listening-status", color=(175, 195, 227), pos=(360,100))
 
     with dpg.tooltip("listening-status"):
         dpg.add_text("Shows current listening status")
 
-    dpg.add_progress_bar(label="Volume", tag="progress-bar")
+    dpg.add_progress_bar(label="Volume", tag="progress-bar", pos=(180,140))
 
-    dpg.add_button(label="Listen", tag="listen-btn", callback=listen)
-    dpg.add_button(label="Stop", tag="stop-btn", callback=stop)
+    dpg.add_button(label="Listen", tag="listen-btn", callback=listen, pos=(380,175)) #w, h
+    dpg.add_button(label="Stop", tag="stop-btn", callback=stop, pos=(380,205))
 
     dpg.add_text("", tag="spoken-text")
 
