@@ -1,6 +1,6 @@
 import speech_recognition as sr
 import pyttsx3
-from utils.core import ai_response
+from utils.core import ai_response, answer_question
 
 # Initialize the recognizer
 r = sr.Recognizer()
@@ -8,11 +8,13 @@ r = sr.Recognizer()
 
 # Function to convert text to
 # speech
-def SpeakText(message):
+def text2speech(message):
     # Initialize the engine
     engine = pyttsx3.init()
 
-    response = ai_response(message=message)
+    # response = ai_response(message=message)
+    response = answer_question(question=message)
+
     print("Response:", response)
     engine.say(response)
     engine.runAndWait()

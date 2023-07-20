@@ -6,6 +6,9 @@ import numpy as np
 # threading
 import threading
 import speech_recognition as sr
+from utils.core import ai_response, answer_question
+from utils.speak import text2speech
+
 
 
 def set_highlighted_excepthook():
@@ -64,6 +67,12 @@ def stop():
     session["recognize"].stop()
 
 
+def say_response(message: str):
+    # response = ai_response(message=message)
+    response = answer_question(question=message)
+    dpg.set_value("response-text", f"A: {response}")
+    text2speech(response)
+
 class SpeechRecognition(threading.Thread):
 
     def __init__(self):
@@ -90,7 +99,9 @@ class SpeechRecognition(threading.Thread):
 
                         print("Speech:", spoken_text)
 
-                        dpg.set_value("spoken-text", spoken_text)
+                        dpg.set_value("spoken-text", f"Q: {spoken_text}")
+                        say_response(spoken_text) # Speak response
+
             except sr.RequestError as e:
                 pass
                 # print("Could not request results; {0}".format(e))
@@ -115,7 +126,9 @@ with dpg.window(tag="Primary Window"):
     dpg.add_button(label="Listen", tag="listen-btn", callback=listen, pos=(380,175)) #w, h
     dpg.add_button(label="Stop", tag="stop-btn", callback=stop, pos=(380,205))
 
-    dpg.add_text("", tag="spoken-text")
+    dpg.add_text("Q:", tag="spoken-text", pos=(180,240))
+    dpg.add_text("A:", tag="response-text", pos=(180,280))
+
 
 dpg.create_viewport(title='Window', width=800, height=400)
 dpg.set_viewport_small_icon("./assets/images/icon.ico")
