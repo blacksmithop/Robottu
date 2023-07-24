@@ -6,7 +6,7 @@ import numpy as np
 # threading
 import threading
 import speech_recognition as sr
-from utils.core import ai_response, answer_question
+from utils.core import answer_question
 from utils.speak import text2speech
 
 
@@ -126,8 +126,8 @@ with dpg.window(tag="Primary Window"):
     dpg.add_button(label="Listen", tag="listen-btn", callback=listen, pos=(380,175)) #w, h
     dpg.add_button(label="Stop", tag="stop-btn", callback=stop, pos=(380,205))
 
-    dpg.add_text("Q:", tag="spoken-text", pos=(180,240))
-    dpg.add_text("A:", tag="response-text", pos=(180,280))
+    dpg.add_text("Q:", tag="spoken-text", pos=(180,240), wrap=450)
+    dpg.add_text("A:", tag="response-text", pos=(180,280), wrap=450)
 
 
 dpg.create_viewport(title='Window', width=800, height=400)
